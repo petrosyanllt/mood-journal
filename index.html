@@ -424,17 +424,17 @@
     }
 
     .reflection-dot {
-      width: 5px;
-      height: 5px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
     }
 
     .reflection-dot.yes {
-      background: var(--text);
+      background: #6AC4B6;
     }
 
     .reflection-dot.no {
-      border: 1px solid var(--text);
+      background: #D98A9B;
     }
 
     /* Popover */
@@ -998,14 +998,6 @@
         if (entry && entry.reflection !== null && entry.reflection !== undefined) {
           const dot = document.createElement('span');
           dot.className = 'reflection-dot ' + (entry.reflection ? 'yes' : 'no');
-          if (entry) {
-            const textColor = isLightColor(entry.color) ? '#1a1a1a' : '#ffffff';
-            if (entry.reflection) {
-              dot.style.background = textColor;
-            } else {
-              dot.style.borderColor = textColor;
-            }
-          }
           cell.appendChild(dot);
         }
 
