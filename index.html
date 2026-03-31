@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mood Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --mood-1: #E4A882;
+      --mood-2: #C5C6CC;
+      --mood-3: #94ACF4;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 0 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 480px;
+      padding-bottom: 48px;
+    }
+
+    /* ---- Header ---- */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+    }
+
+    .tab-btn {
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 180ms ease;
+    }
+
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    /* ---- Views ---- */
+    .view {
+      display: none;
+      animation: fadeIn 200ms ease;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* ---- Entry View ---- */
+    .date-display {
+      font-size: 15px;
+      color: var(--text-secondary);
+      font-weight: 400;
+      padding: 28px 0 24px;
+      text-align: center;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    /* Mood Selector */
+    .mood-selector {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      padding-bottom: 32px;
+    }
+
+    .mood-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      transition: transform 200ms ease;
+    }
+
+    .mood-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      transition: all 200ms ease;
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+    }
+
+    .mood-circle::after {
+      content: '';
+      position: absolute;
+      inset: -5px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      transition: border-color 200ms ease;
+    }
+
+    .mood-btn:hover .mood-circle {
+      transform: scale(1.08);
+    }
+
+    .mood-btn.selected .mood-circle {
+      transform: scale(1.15);
+    }
+
+    .mood-btn.selected .mood-circle::after {
+      border-color: currentColor;
+    }
+
+    .mood-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 200ms ease;
+    }
+
+    .mood-btn.selected .mood-label {
+      color: var(--text);
+    }
+
+    /* Reflection */
+    .reflection-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .reflection-quote {
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 1.6;
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    .reflection-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .reflection-btn {
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 28px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 200ms ease;
+    }
+
+    .reflection-btn:hover {
+      border-color: var(--text-secondary);
+    }
+
+    .reflection-btn.selected-yes {
+      background: #eef6f5;
+      border-color: #A2D5CF;
+      color: #2a6b63;
+    }
+
+    .reflection-btn.selected-no {
+      background: #f5efe8;
+      border-color: #E4A882;
+      color: #8a5e3a;
+    }
+
+    /* Note */
+    .note-section {
+      margin-bottom: 24px;
+    }
+
+    .note-textarea {
+      font-family: var(--font);
+      font-size: 15px;
+      width: 100%;
+      min-height: 80px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      resize: none;
+      outline: none;
+      line-height: 1.6;
+      transition: border-color 200ms ease;
+    }
+
+    .note-textarea::placeholder {
+      color: #c0c4cc;
+    }
+
+    .note-textarea:focus {
+      border-color: var(--text-secondary);
+    }
+
+    /* Save Button */
+    .save-btn {
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 500;
+      width: 100%;
+      padding: 14px;
+      border-radius: var(--radius);
+      border: none;
+      background: var(--text);
+      color: var(--bg);
+      cursor: pointer;
+      transition: all 200ms ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .save-btn:disabled {
+      background: var(--border);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+    }
+
+    .save-btn:not(:disabled):hover {
+      opacity: 0.88;
+    }
+
+    .save-btn .btn-text {
+      transition: opacity 200ms ease;
+    }
+
+    .save-btn.saved .btn-text {
+      opacity: 0;
+    }
+
+    .save-btn .checkmark {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+
+    .save-btn.saved .checkmark {
+      opacity: 1;
+    }
+
+    /* ---- Calendar View ---- */
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0 20px;
+    }
+
+    .calendar-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .calendar-nav {
+      font-family: var(--font);
+      font-size: 18px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text);
+      transition: all 180ms ease;
+    }
+
+    .calendar-nav:hover {
+      background: var(--surface);
+      border-color: var(--text-secondary);
+    }
+
+    .weekday-labels {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .weekday-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 4px 0;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .day-cell {
+      aspect-ratio: 1;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: default;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      position: relative;
+      transition: all 180ms ease;
+      font-family: var(--font);
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 0;
+      outline: none;
+    }
+
+    .day-cell.empty {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .day-cell.has-entry {
+      cursor: pointer;
+      border-color: transparent;
+    }
+
+    .day-cell.has-entry:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .day-cell.today {
+      border-color: var(--text);
+      border-width: 2px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .day-cell.future {
+      opacity: 0.4;
+    }
+
+    .day-number {
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .reflection-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+
+    .reflection-dot.yes {
+      background: var(--text);
+    }
+
+    .reflection-dot.no {
+      border: 1px solid var(--text);
+    }
+
+    /* Popover */
+    .popover-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+    }
+
+    .popover-overlay.active {
+      display: block;
+    }
+
+    .popover {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-top: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      animation: popoverIn 180ms ease;
+      position: relative;
+      z-index: 20;
+    }
+
+    .popover.active {
+      display: block;
+    }
+
+    @keyframes popoverIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .popover-date {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .popover-mood {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .popover-mood-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+    }
+
+    .popover-mood-label {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .popover-reflection {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .popover-note {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ---- Sync ---- */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sync-btn {
+      font-family: var(--font);
+      font-size: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 180ms ease;
+      position: relative;
+    }
+
+    .sync-btn:hover {
+      border-color: var(--text-secondary);
+      color: var(--text);
+    }
+
+    .sync-btn.connected {
+      color: #2a6b63;
+      border-color: #A2D5CF;
+    }
+
+    .sync-btn.syncing {
+      animation: spin 800ms linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .sync-panel {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-top: 16px;
+      animation: popoverIn 180ms ease;
+    }
+
+    .sync-panel.active {
+      display: block;
+    }
+
+    .sync-panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .sync-panel-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .sync-panel-desc a {
+      color: var(--text);
+    }
+
+    .sync-input {
+      font-family: var(--font);
+      font-size: 13px;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color 180ms ease;
+    }
+
+    .sync-input:focus {
+      border-color: var(--text-secondary);
+    }
+
+    .sync-input::placeholder {
+      color: #c0c4cc;
+    }
+
+    .sync-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .sync-connect-btn {
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--text);
+      color: var(--bg);
+      cursor: pointer;
+      transition: opacity 180ms ease;
+    }
+
+    .sync-connect-btn:hover {
+      opacity: 0.88;
+    }
+
+    .sync-connect-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .sync-disconnect-btn {
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 180ms ease;
+    }
+
+    .sync-disconnect-btn:hover {
+      border-color: var(--text-secondary);
+      color: var(--text);
+    }
+
+    .sync-status {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+    }
+
+    .sync-status.error {
+      color: #c45;
+    }
+
+    .sync-status.success {
+      color: #2a6b63;
+    }
+
+    .sync-connected-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sync-connected-label {
+      font-size: 13px;
+      color: #2a6b63;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Mood Journal</h1>
+      <div class="header-right">
+        <button class="sync-btn" id="sync-btn" title="Sync settings">&#8635;</button>
+        <div class="tabs">
+          <button class="tab-btn active" data-view="entry">Today</button>
+          <button class="tab-btn" data-view="calendar">Calendar</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="sync-panel" id="sync-panel">
+      <div id="sync-setup">
+        <div class="sync-panel-title">Sync with GitHub Gist</div>
+        <div class="sync-panel-desc">
+          Your entries sync privately via a GitHub Gist.
+          <a href="https://github.com/settings/tokens/new?scopes=gist&description=mood-journal" target="_blank" rel="noopener">Create a classic token</a> with the Gist scope.
+        </div>
+        <input class="sync-input" id="sync-token-input" type="password" placeholder="Paste your GitHub token" autocomplete="off">
+        <div class="sync-actions">
+          <button class="sync-connect-btn" id="sync-connect-btn">Connect</button>
+        </div>
+        <div class="sync-status" id="sync-status"></div>
+      </div>
+      <div id="sync-connected" style="display:none">
+        <div class="sync-connected-info">
+          <span class="sync-connected-label">&#10003; Syncing via GitHub Gist</span>
+          <button class="sync-disconnect-btn" id="sync-disconnect-btn">Disconnect</button>
+        </div>
+        <div class="sync-status" id="sync-connected-status"></div>
+      </div>
+      <div style="border-top:1px solid var(--border); margin-top:16px; padding-top:14px">
+        <div class="sync-connected-info">
+          <span style="font-size:13px; color:var(--text-secondary)">Delete all journal entries</span>
+          <button class="sync-disconnect-btn" id="clear-data-btn" style="color:#c45; border-color:#c45">Clear data</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entry View -->
+    <div id="entry-view" class="view active">
+      <div class="date-display" id="today-date"></div>
+
+      <div class="section-label">How are you feeling?</div>
+      <div class="mood-selector" id="mood-selector"></div>
+
+      <div class="reflection-section">
+        <p class="reflection-quote">"If today were the last day of my life, would I want to do what I am about to do today?"</p>
+        <div class="reflection-actions">
+          <button class="reflection-btn" id="ref-yes" data-value="yes">Yes</button>
+          <button class="reflection-btn" id="ref-no" data-value="no">No</button>
+        </div>
+      </div>
+
+      <div class="note-section">
+        <div class="section-label">Note</div>
+        <textarea class="note-textarea" id="note-input" placeholder="Anything on your mind?"></textarea>
+      </div>
+
+      <button class="save-btn" id="save-btn" disabled>
+        <span class="btn-text">Save</span>
+        <span class="checkmark">&#10003;</span>
+      </button>
+    </div>
+
+    <!-- Calendar View -->
+    <div id="calendar-view" class="view">
+      <div class="calendar-header">
+        <button class="calendar-nav" id="prev-month">&#8249;</button>
+        <span class="calendar-title" id="calendar-title"></span>
+        <button class="calendar-nav" id="next-month">&#8250;</button>
+      </div>
+      <div class="weekday-labels" id="weekday-labels"></div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+      <div class="popover-overlay" id="popover-overlay"></div>
+      <div class="popover" id="popover"></div>
+    </div>
+  </div>
+
+  <script>
+    const MOODS = [
+      { level: 1, label: 'Rough', color: '#E4A882' },
+      { level: 2, label: 'Okay',  color: '#C5C6CC' },
+      { level: 3, label: 'Good',  color: '#94ACF4' },
+    ];
+    const STORAGE_KEY = 'mood-journal-entries';
+    const SYNC_TOKEN_KEY = 'mood-journal-gh-token';
+    const SYNC_GIST_KEY = 'mood-journal-gist-id';
+    const GIST_FILENAME = 'mood-journal.json';
+    const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    let state = {
+      selectedMood: null,
+      reflection: null, // true, false, or null
+      calendarMonth: new Date().getMonth(),
+      calendarYear: new Date().getFullYear(),
+      popoverDate: null,
+    };
+
+    // ---- Storage ----
+    function migrateEntries() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (!raw) return;
+        const remap = { 1: 1, 2: 1, 3: 2, 4: 3, 5: 3 };
+        let changed = false;
+        for (const key in raw) {
+          const e = raw[key];
+          const newLevel = remap[e.mood] || e.mood;
+          const mood = MOODS.find(m => m.level === newLevel);
+          if (mood && (e.mood !== newLevel || e.color !== mood.color)) {
+            e.mood = newLevel;
+            e.color = mood.color;
+            e.label = mood.label;
+            changed = true;
+          }
+        }
+        if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(raw));
+      } catch {}
+    }
+    migrateEntries();
+
+    function loadEntries() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch { return {}; }
+    }
+
+    function saveEntry(dateStr, entry) {
+      const entries = loadEntries();
+      entries[dateStr] = entry;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+
+    function getEntry(dateStr) {
+      return loadEntries()[dateStr] || null;
+    }
+
+    function todayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    // ---- Format ----
+    function formatDateLong(dateStr) {
+      const d = new Date(dateStr + 'T12:00:00');
+      return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    }
+
+    // ---- Tab Switching ----
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(btn.dataset.view + '-view').classList.add('active');
+        if (btn.dataset.view === 'calendar') renderCalendar();
+      });
+    });
+
+    // ---- Entry View ----
+    function initEntryView() {
+      document.getElementById('today-date').textContent = formatDateLong(todayStr());
+      renderMoodSelector();
+      loadTodayEntry();
+    }
+
+    function renderMoodSelector() {
+      const container = document.getElementById('mood-selector');
+      container.innerHTML = '';
+      MOODS.forEach(mood => {
+        const btn = document.createElement('button');
+        btn.className = 'mood-btn';
+        btn.dataset.level = mood.level;
+        btn.innerHTML = `
+          <div class="mood-circle" style="background:${mood.color}; color:${mood.color}"></div>
+          <span class="mood-label">${mood.label}</span>
+        `;
+        btn.addEventListener('click', () => selectMood(mood.level));
+        container.appendChild(btn);
+      });
+    }
+
+    function selectMood(level) {
+      state.selectedMood = level;
+      document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.classList.toggle('selected', parseInt(btn.dataset.level) === level);
+      });
+      updateSaveButton();
+    }
+
+    // ---- Reflection ----
+    document.getElementById('ref-yes').addEventListener('click', () => setReflection(true));
+    document.getElementById('ref-no').addEventListener('click', () => setReflection(false));
+
+    function setReflection(value) {
+      state.reflection = value;
+      const yesBtn = document.getElementById('ref-yes');
+      const noBtn = document.getElementById('ref-no');
+      yesBtn.className = 'reflection-btn' + (value === true ? ' selected-yes' : '');
+      noBtn.className = 'reflection-btn' + (value === false ? ' selected-no' : '');
+    }
+
+    // ---- Note Auto-grow ----
+    const noteInput = document.getElementById('note-input');
+    noteInput.addEventListener('input', () => {
+      noteInput.style.height = 'auto';
+      noteInput.style.height = noteInput.scrollHeight + 'px';
+    });
+
+    // ---- Save ----
+    const saveBtn = document.getElementById('save-btn');
+
+    function updateSaveButton() {
+      const existing = getEntry(todayStr());
+      saveBtn.disabled = !state.selectedMood;
+      saveBtn.querySelector('.btn-text').textContent = existing ? 'Update' : 'Save';
+    }
+
+    saveBtn.addEventListener('click', () => {
+      if (!state.selectedMood) return;
+      const mood = MOODS.find(m => m.level === state.selectedMood);
+      const entry = {
+        date: todayStr(),
+        mood: mood.level,
+        label: mood.label,
+        color: mood.color,
+        reflection: state.reflection,
+        note: noteInput.value.trim(),
+      };
+      saveEntry(todayStr(), entry);
+      syncAfterSave();
+
+      saveBtn.classList.add('saved');
+      setTimeout(() => {
+        saveBtn.classList.remove('saved');
+        updateSaveButton();
+      }, 1200);
+    });
+
+    function loadTodayEntry() {
+      const entry = getEntry(todayStr());
+      if (!entry) {
+        state.selectedMood = null;
+        state.reflection = null;
+        updateSaveButton();
+        return;
+      }
+      selectMood(entry.mood);
+      setReflection(entry.reflection);
+      noteInput.value = entry.note || '';
+      noteInput.dispatchEvent(new Event('input'));
+      updateSaveButton();
+    }
+
+    // ---- Calendar View ----
+    function renderWeekdayLabels() {
+      const container = document.getElementById('weekday-labels');
+      container.innerHTML = WEEKDAYS.map(d => `<div class="weekday-label">${d}</div>`).join('');
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendar-grid');
+      const title = document.getElementById('calendar-title');
+      const { calendarMonth: month, calendarYear: year } = state;
+
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      title.textContent = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1);
+      let startDay = firstDay.getDay() - 1;
+      if (startDay < 0) startDay = 6; // Sunday wraps to end
+
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const entries = loadEntries();
+      const today = todayStr();
+
+      grid.innerHTML = '';
+      closePopover();
+
+      for (let i = 0; i < startDay; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell empty';
+        grid.appendChild(cell);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const entry = entries[dateStr];
+        const cell = document.createElement(entry ? 'button' : 'div');
+
+        let classes = 'day-cell';
+        if (dateStr === today) classes += ' today';
+        if (entry) classes += ' has-entry';
+        if (dateStr > today) classes += ' future';
+        cell.className = classes;
+        if (entry) cell.setAttribute('aria-label', `${formatDateLong(dateStr)}, ${entry.label}`);
+
+        if (entry) {
+          cell.style.background = entry.color;
+          cell.style.color = isLightColor(entry.color) ? '#1a1a1a' : '#ffffff';
+        }
+
+        const dayNum = document.createElement('span');
+        dayNum.className = 'day-number';
+        dayNum.textContent = day;
+        cell.appendChild(dayNum);
+
+        if (entry && entry.reflection !== null && entry.reflection !== undefined) {
+          const dot = document.createElement('span');
+          dot.className = 'reflection-dot ' + (entry.reflection ? 'yes' : 'no');
+          if (entry) {
+            const textColor = isLightColor(entry.color) ? '#1a1a1a' : '#ffffff';
+            if (entry.reflection) {
+              dot.style.background = textColor;
+            } else {
+              dot.style.borderColor = textColor;
+            }
+          }
+          cell.appendChild(dot);
+        }
+
+        if (entry) {
+          cell.addEventListener('click', () => openPopover(dateStr, entry));
+        }
+
+        grid.appendChild(cell);
+      }
+    }
+
+    function isLightColor(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return (r * 299 + g * 587 + b * 114) / 1000 > 160;
+    }
+
+    // ---- Month Navigation ----
+    document.getElementById('prev-month').addEventListener('click', () => {
+      state.calendarMonth--;
+      if (state.calendarMonth < 0) { state.calendarMonth = 11; state.calendarYear--; }
+      renderCalendar();
+    });
+
+    document.getElementById('next-month').addEventListener('click', () => {
+      state.calendarMonth++;
+      if (state.calendarMonth > 11) { state.calendarMonth = 0; state.calendarYear++; }
+      renderCalendar();
+    });
+
+    // ---- Popover ----
+    function openPopover(dateStr, entry) {
+      if (state.popoverDate === dateStr) { closePopover(); return; }
+      state.popoverDate = dateStr;
+      const popover = document.getElementById('popover');
+      const overlay = document.getElementById('popover-overlay');
+
+      let reflectionText = '';
+      if (entry.reflection === true) reflectionText = 'Reflection: Yes';
+      else if (entry.reflection === false) reflectionText = 'Reflection: No';
+
+      popover.innerHTML = `
+        <div class="popover-date">${formatDateLong(dateStr)}</div>
+        <div class="popover-mood">
+          <div class="popover-mood-dot" style="background:${entry.color}"></div>
+          <span class="popover-mood-label">${entry.label}</span>
+        </div>
+        ${reflectionText ? `<div class="popover-reflection">${reflectionText}</div>` : ''}
+        ${entry.note ? `<div class="popover-note">${escapeHtml(entry.note)}</div>` : ''}
+      `;
+      popover.classList.add('active');
+      overlay.classList.add('active');
+    }
+
+    function closePopover() {
+      state.popoverDate = null;
+      document.getElementById('popover').classList.remove('active');
+      document.getElementById('popover-overlay').classList.remove('active');
+    }
+
+    document.getElementById('popover-overlay').addEventListener('click', closePopover);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopover(); });
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ---- Gist Sync ----
+    const syncBtnEl = document.getElementById('sync-btn');
+    const syncPanel = document.getElementById('sync-panel');
+    const syncSetup = document.getElementById('sync-setup');
+    const syncConnected = document.getElementById('sync-connected');
+    const syncTokenInput = document.getElementById('sync-token-input');
+    const syncConnectBtn = document.getElementById('sync-connect-btn');
+    const syncDisconnectBtn = document.getElementById('sync-disconnect-btn');
+    const syncStatusEl = document.getElementById('sync-status');
+    const syncConnectedStatusEl = document.getElementById('sync-connected-status');
+
+    function getToken() { return localStorage.getItem(SYNC_TOKEN_KEY); }
+    function getGistId() { return localStorage.getItem(SYNC_GIST_KEY); }
+    function isConnected() { return !!(getToken() && getGistId()); }
+
+    function updateSyncUI() {
+      const connected = isConnected();
+      syncBtnEl.classList.toggle('connected', connected);
+      syncSetup.style.display = connected ? 'none' : '';
+      syncConnected.style.display = connected ? '' : 'none';
+    }
+
+    syncBtnEl.addEventListener('click', () => {
+      syncPanel.classList.toggle('active');
+    });
+
+    async function gistFetch(path, options = {}) {
+      const token = getToken();
+      const res = await fetch(`https://api.github.com${path}`, {
+        ...options,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          ...(options.headers || {}),
+        },
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`GitHub API ${res.status}: ${body}`);
+      }
+      return res.json();
+    }
+
+    async function createGist(entries) {
+      const data = await gistFetch('/gists', {
+        method: 'POST',
+        body: JSON.stringify({
+          description: 'Mood Journal data',
+          public: false,
+          files: { [GIST_FILENAME]: { content: JSON.stringify(entries, null, 2) } },
+        }),
+      });
+      return data.id;
+    }
+
+    async function pushToGist(entries) {
+      const gistId = getGistId();
+      if (!gistId) return;
+      await gistFetch(`/gists/${gistId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          files: { [GIST_FILENAME]: { content: JSON.stringify(entries, null, 2) } },
+        }),
+      });
+    }
+
+    async function pullFromGist() {
+      const gistId = getGistId();
+      if (!gistId) return null;
+      const data = await gistFetch(`/gists/${gistId}`);
+      const file = data.files[GIST_FILENAME];
+      if (!file) return null;
+      try { return JSON.parse(file.content); } catch { return null; }
+    }
+
+    function mergeEntries(local, remote) {
+      const merged = { ...local };
+      for (const key in remote) {
+        if (!merged[key]) {
+          merged[key] = remote[key];
+        }
+      }
+      return merged;
+    }
+
+    async function syncNow() {
+      if (!isConnected()) return;
+      syncBtnEl.classList.add('syncing');
+      try {
+        const remote = await pullFromGist();
+        const local = loadEntries();
+        if (remote) {
+          const merged = mergeEntries(local, remote);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+          await pushToGist(merged);
+        } else {
+          await pushToGist(local);
+        }
+        syncConnectedStatusEl.textContent = `Last synced: ${new Date().toLocaleTimeString()}`;
+        syncConnectedStatusEl.className = 'sync-status success';
+      } catch (err) {
+        syncConnectedStatusEl.textContent = `Sync error: ${err.message}`;
+        syncConnectedStatusEl.className = 'sync-status error';
+      } finally {
+        syncBtnEl.classList.remove('syncing');
+      }
+    }
+
+    async function syncAfterSave() {
+      if (!isConnected()) return;
+      syncBtnEl.classList.add('syncing');
+      try {
+        await pushToGist(loadEntries());
+        syncConnectedStatusEl.textContent = `Last synced: ${new Date().toLocaleTimeString()}`;
+        syncConnectedStatusEl.className = 'sync-status success';
+      } catch (err) {
+        syncConnectedStatusEl.textContent = `Sync error: ${err.message}`;
+        syncConnectedStatusEl.className = 'sync-status error';
+      } finally {
+        syncBtnEl.classList.remove('syncing');
+      }
+    }
+
+    syncConnectBtn.addEventListener('click', async () => {
+      const token = syncTokenInput.value.trim();
+      if (!token) return;
+      syncConnectBtn.disabled = true;
+      syncStatusEl.textContent = 'Connecting...';
+      syncStatusEl.className = 'sync-status';
+      try {
+        localStorage.setItem(SYNC_TOKEN_KEY, token);
+        const existingGistId = getGistId();
+        if (existingGistId) {
+          try {
+            await gistFetch(`/gists/${existingGistId}`);
+          } catch {
+            localStorage.removeItem(SYNC_GIST_KEY);
+          }
+        }
+        if (!getGistId()) {
+          const entries = loadEntries();
+          const gistId = await createGist(entries);
+          localStorage.setItem(SYNC_GIST_KEY, gistId);
+        }
+        await syncNow();
+        updateSyncUI();
+        syncTokenInput.value = '';
+      } catch (err) {
+        syncStatusEl.textContent = `Error: ${err.message}`;
+        syncStatusEl.className = 'sync-status error';
+        localStorage.removeItem(SYNC_TOKEN_KEY);
+      } finally {
+        syncConnectBtn.disabled = false;
+      }
+    });
+
+    syncDisconnectBtn.addEventListener('click', () => {
+      localStorage.removeItem(SYNC_TOKEN_KEY);
+      localStorage.removeItem(SYNC_GIST_KEY);
+      updateSyncUI();
+      syncConnectedStatusEl.textContent = '';
+      syncPanel.classList.remove('active');
+    });
+
+    updateSyncUI();
+
+    // ---- Clear Data ----
+    document.getElementById('clear-data-btn').addEventListener('click', async () => {
+      if (!confirm('Delete all journal entries? This cannot be undone.')) return;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({}));
+      if (isConnected()) {
+        try { await pushToGist({}); } catch {}
+      }
+      state.selectedMood = null;
+      state.reflection = null;
+      noteInput.value = '';
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+      setReflection(null);
+      updateSaveButton();
+      syncPanel.classList.remove('active');
+    });
+
+    // ---- Init ----
+    renderWeekdayLabels();
+    initEntryView();
+    if (isConnected()) syncNow().then(() => { loadTodayEntry(); renderCalendar(); });
+  </script>
+</body>
+</html>
