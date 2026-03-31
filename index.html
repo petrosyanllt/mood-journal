@@ -1195,6 +1195,14 @@
       }
     }
 
+    async function findExistingGist() {
+      const gists = await gistFetch('/gists?per_page=100');
+      for (const g of gists) {
+        if (g.files && g.files[GIST_FILENAME]) return g.id;
+      }
+      return null;
+    }
+
     syncConnectBtn.addEventListener('click', async () => {
       const token = syncTokenInput.value.trim();
       if (!token) return;
@@ -1203,18 +1211,20 @@
       syncStatusEl.className = 'sync-status';
       try {
         localStorage.setItem(SYNC_TOKEN_KEY, token);
-        const existingGistId = getGistId();
-        if (existingGistId) {
-          try {
-            await gistFetch(`/gists/${existingGistId}`);
-          } catch {
-            localStorage.removeItem(SYNC_GIST_KEY);
-          }
+        let gistId = getGistId();
+        if (gistId) {
+          try { await gistFetch(`/gists/${gistId}`); }
+          catch { gistId = null; localStorage.removeItem(SYNC_GIST_KEY); }
         }
-        if (!getGistId()) {
-          const entries = loadEntries();
-          const gistId = await createGist(entries);
-          localStorage.setItem(SYNC_GIST_KEY, gistId);
+        if (!gistId) {
+          gistId = await findExistingGist();
+          if (gistId) {
+            localStorage.setItem(SYNC_GIST_KEY, gistId);
+          } else {
+            const entries = loadEntries();
+            gistId = await createGist(entries);
+            localStorage.setItem(SYNC_GIST_KEY, gistId);
+          }
         }
         await syncNow();
         updateSyncUI();
